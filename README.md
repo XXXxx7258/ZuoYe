@@ -1,4 +1,4 @@
-# 本地日程提醒工具 / Neo-Brutalism 前后端一体
+# 本地日程提醒工具（25年11.20课程作业）
 
 ## 概要
 基于 Java Swing / SystemTray 的本地日程提醒服务，默认无窗口后台运行，支持 XML 持久化、重复规则（不重复/每天/每周）、托盘提醒、内置 HTTP API，以及一页式 Neo-Brutalism 前端（`neo_brutalism_dashboard.html`）做主要交互。
