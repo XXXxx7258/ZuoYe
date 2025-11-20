@@ -1,5 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -17,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -214,6 +216,7 @@ public class Main {
         private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(new DaemonFactory());
         private HttpServer httpServer;
         private TrayIconWrapper trayIconWrapper;
+        private boolean browserOpened = false;
 
         SchedulerApp(boolean showWindow) {
             this.showWindow = showWindow;
@@ -416,8 +419,28 @@ public class Main {
                 httpServer.setExecutor(Executors.newCachedThreadPool(new DaemonFactory()));
                 httpServer.start();
                 updateStatus("HTTP 服务已启用: http://localhost:" + HTTP_PORT);
+                openBrowserIfSupported();
             } catch (IOException ex) {
                 updateStatus("HTTP 启动失败：" + ex.getMessage());
+            }
+        }
+
+        private void openBrowserIfSupported() {
+            if (browserOpened) {
+                return;
+            }
+            if (!Desktop.isDesktopSupported()) {
+                return;
+            }
+            Desktop desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.BROWSE)) {
+                return;
+            }
+            try {
+                desktop.browse(new URI("http://localhost:" + HTTP_PORT));
+                browserOpened = true;
+            } catch (Exception ignored) {
+                // 忽略浏览器启动失败，保留后台服务
             }
         }
 
