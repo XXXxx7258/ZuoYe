@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Neo-Brutalism 个人管理中心</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8f5f0;
+      --ink: #0f0f0f;
+      --accent: #ff5c8d;
+      --accent-2: #4ce0b3;
+      --accent-3: #4d6aff;
+      --panel: #fff9f3;
+      --border: 4px;
+      --shadow: 12px 12px 0 #0f0f0f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(255,92,141,0.08), transparent 30%),
+                  radial-gradient(circle at 80% 40%, rgba(77,106,255,0.08), transparent 32%),
+                  var(--bg);
+      color: var(--ink);
+      font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+      gap: 16px;
+      padding: 18px;
+    }
+    .panel {
+      background: var(--panel);
+      border: var(--border) solid var(--ink);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+    }
+    .sidebar {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+      height: calc(100vh - 36px);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+    .logo-badge {
+      width: 46px;
+      height: 46px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-3));
+      border: var(--border) solid var(--ink);
+      box-shadow: 8px 8px 0 #0f0f0f;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+    }
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .nav button {
+      all: unset;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border: var(--border) solid var(--ink);
+      background: #e7e2ff;
+      box-shadow: 6px 6px 0 #0f0f0f;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+    .nav button:hover { transform: translate(-4px, -4px); }
+    .badge {
+      padding: 4px 8px;
+      border: var(--border)/2 solid var(--ink);
+      border-radius: 999px;
+      font-size: 11px;
+      background: #fff;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .hero {
+      padding: 22px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -0.6px;
+    }
+    .hero p {
+      margin: 8px 0 0;
+      max-width: 80ch;
+      line-height: 1.4;
+    }
+    .cta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .btn {
+      border: var(--border) solid var(--ink);
+      box-shadow: 6px 6px 0 #0f0f0f;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+    .btn:hover { transform: translate(-3px, -3px); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost { background: #fff; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      padding: 18px;
+    }
+    .component-card {
+      background: #fff;
+      border: var(--border) solid var(--ink);
+      box-shadow: 6px 6px 0 #0f0f0f;
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 700;
+    }
+    .pill {
+      background: #111;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+    .mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .input {
+      width: 100%;
+      padding: 10px 12px;
+      border: var(--border)/2 solid var(--ink);
+      background: #fefefe;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .toggle {
+      width: 48px;
+      height: 26px;
+      border: var(--border)/2 solid var(--ink);
+      background: #111;
+      border-radius: 14px;
+      position: relative;
+      cursor: pointer;
+    }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 20px; height: 20px;
+      background: #fff;
+      border: var(--border)/2 solid var(--ink);
+      border-radius: 10px;
+      transition: transform 0.18s ease;
+    }
+    .toggle.active { background: var(--accent-2); }
+    .toggle.active::after { transform: translateX(22px); }
+    .progress {
+      position: relative;
+      height: 14px;
+      border: var(--border)/2 solid var(--ink);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f0f0f0;
+    }
+    .progress span {
+      position: absolute;
+      inset: 0;
+      width: 62%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-3));
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+    .table {
+      border: var(--border)/2 solid var(--ink);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .table th, .table td {
+      padding: 8px 10px;
+      border-bottom: 2px solid #111;
+    }
+    .kanban {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .lane {
+      background: #f1f0ff;
+      border: var(--border)/2 solid var(--ink);
+      border-radius: 10px;
+      padding: 8px;
+      box-shadow: 4px 4px 0 #0f0f0f;
+    }
+    .lane h4 { margin: 0 0 6px; }
+    .ticket {
+      background: #fff;
+      border: var(--border)/2 solid var(--ink);
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      box-shadow: 3px 3px 0 #0f0f0f;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      font-size: 12px;
+    }
+    .calendar div {
+      background: #fff;
+      border: var(--border)/2 solid var(--ink);
+      border-radius: 8px;
+      padding: 6px;
+      text-align: center;
+      box-shadow: 2px 2px 0 #0f0f0f;
+    }
+    .toast-stack {
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      display: grid;
+      gap: 10px;
+      z-index: 20;
+    }
+    .toast {
+      background: #111;
+      color: #fff;
+      padding: 12px 14px;
+      border: 3px solid #fff;
+      box-shadow: 6px 6px 0 #0f0f0f;
+      border-radius: 12px;
+      min-width: 220px;
+    }
+    .modal, .drawer, .command {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.15);
+      z-index: 30;
+    }
+    .modal.open, .drawer.open, .command.open { display: flex; }
+    .modal-content, .command-content {
+      background: #fff;
+      border: var(--border) solid var(--ink);
+      box-shadow: var(--shadow);
+      border-radius: 16px;
+      padding: 18px;
+      width: min(520px, 90vw);
+    }
+    .drawer-content {
+      background: #fff;
+      border: var(--border) solid var(--ink);
+      box-shadow: var(--shadow);
+      border-radius: 16px 0 0 16px;
+      width: min(420px, 90vw);
+      height: 100%;
+      padding: 18px;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent-3);
+      color: #fff;
+      border: var(--border) solid var(--ink);
+      box-shadow: 8px 8px 0 #0f0f0f;
+      border-radius: 50%;
+      width: 62px;
+      height: 62px;
+      font-size: 20px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .speed-dial {
+      position: fixed;
+      bottom: 96px;
+      right: 24px;
+      display: grid;
+      gap: 10px;
+    }
+    .speed-dial button {
+      background: #fff;
+      border: var(--border) solid var(--ink);
+      box-shadow: 6px 6px 0 #0f0f0f;
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .swatches {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .swatch {
+      width: 32px; height: 32px;
+      border: var(--border)/2 solid var(--ink);
+      border-radius: 8px;
+      box-shadow: 3px 3px 0 #0f0f0f;
+    }
+    .skeleton {
+      height: 12px;
+      width: 100%;
+      background: linear-gradient(90deg, #eee, #fff, #eee);
+      background-size: 200% 100%;
+      animation: shimmer 1.6s infinite;
+      border-radius: 8px;
+      border: var(--border)/2 solid var(--ink);
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .timeline {
+      display: grid;
+      gap: 6px;
+    }
+    .timeline .item {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+    .tag {
+      padding: 6px 10px;
+      border: var(--border)/2 solid var(--ink);
+      background: #f0faff;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .map-placeholder, .chart-placeholder {
+      height: 120px;
+      border: var(--border)/2 dashed var(--ink);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: #f9f9f9;
+      font-weight: 700;
+    }
+    .calendar div.accented { background: #ffe599; }
+    .table thead { background: #f2f2f2; }
+    .table tbody tr:nth-child(2) { background: #fff7e6; }
+    .inline-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    .pill-ink {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #111;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: var(--border)/2 solid #fff;
+      box-shadow: 4px 4px 0 #0f0f0f;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar panel">
+      <div class="logo">
+        <div class="logo-badge">NB</div>
+        <div>
+          <div>个人管理</div>
+          <small>Neo-Brutalism</small>
+        </div>
+      </div>
+      <div class="nav">
+        <button><span>概览 / Today</span><span class="badge">LIVE</span></button>
+        <button><span>任务流 / Tasks</span><span class="badge">12</span></button>
+        <button><span>数据 / Analytics</span><span class="badge">Pro</span></button>
+        <button><span>时间轴 / Time</span><span class="badge">New</span></button>
+        <button><span>设置 / System</span><span class="badge">⚡</span></button>
+      </div>
+      <div class="panel" style="padding:14px;">
+        <strong>口号</strong>
+        <p style="margin:8px 0 0; line-height:1.4;">不跟风模板，只要硬朗线条、强烈对比和直给的功能质感。</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero panel">
+        <div>
+          <h1>个人管理指挥台 · Neo-Brutalism</h1>
+          <p>左侧导航快速切换情境，右侧展示 60 颗可复用组件，含高级/复杂模块（看板、数据、日历、命令面板、模态、抽屉等）。厚重描边 + 高饱和撞色 + 阴影，硬朗又俏皮。运行 <code>java -cp out Main</code> 后访问 <strong>http://localhost:18080</strong>，即能用此前端直连 Java 后端日程服务。</p>
+        </div>
+        <div class="cta">
+          <button class="btn btn-primary" data-command-open>⌘K 命令面板</button>
+          <button class="btn btn-ghost" data-toast="已切换到 Brute 模式">弹个 Toast</button>
+        </div>
+      </section>
+
+      <section class="panel" style="padding:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div>
+            <div style="font-size:18px; font-weight:800;">与 Java 本地提醒同步 · 双向操作</div>
+            <div style="opacity:0.85;">表单提交即调用 /api/schedules，新增/删除会实时落盘 XML 并驱动托盘提醒。</div>
+          </div>
+          <div class="pill-ink">API <span>/api/schedules</span></div>
+        </div>
+        <form id="schedule-form" class="inline-form">
+          <input class="input" id="f-title" placeholder="标题：今晚拉练" required>
+          <input class="input" id="f-date" type="date" required>
+          <input class="input" id="f-time" type="time" required>
+          <select class="input" id="f-repeat">
+            <option value="NONE">不重复</option>
+            <option value="DAILY">每天</option>
+            <option value="WEEKLY">每周</option>
+          </select>
+          <button class="btn btn-primary" type="submit">同步到 Java</button>
+        </form>
+        <div style="margin-top:14px;">
+          <div class="card-head" style="margin-bottom:8px;"><span class="pill">当前日程</span><small id="sync-status">加载中...</small></div>
+          <div id="schedule-list" class="chip-list"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div style="padding:16px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700; font-size:18px;">组件展厅 · 60 件作品</div>
+            <div style="opacity:0.8;">包含基础、进阶、数据、生产力、视觉特效等类别</div>
+          </div>
+          <div class="pill">Neo Brutal Components</div>
+        </div>
+        <div class="grid" id="component-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-stack" id="toast-stack"></div>
+
+  <div class="modal" id="demo-modal">
+    <div class="modal-content">
+      <div class="card-head"><span class="pill">Modal</span><button class="btn btn-ghost" data-modal-close>关闭</button></div>
+      <p style="margin:8px 0 0;">硬边模态对话框，可用于确认、表单或富内容展示。</p>
+    </div>
+  </div>
+
+  <div class="drawer" id="demo-drawer">
+    <div class="drawer-content">
+      <div class="card-head"><span class="pill">Drawer</span><button class="btn btn-ghost" data-drawer-close>收起</button></div>
+      <p>抽屉式信息流，适合查看详情或临时工具。</p>
+      <ul>
+        <li>快捷筛选</li>
+        <li>会话详情</li>
+        <li>小贴士与快捷键</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="command" id="command-panel">
+    <div class="command-content">
+      <div class="card-head"><span class="pill">Command Palette</span><button class="btn btn-ghost" data-command-close>关闭</button></div>
+      <input class="input" placeholder="输入命令，比如：/新建任务 /打开日历 /切换主题">
+      <div class="chip-list" style="margin-top:10px;">
+        <span class="tag">/today</span>
+        <span class="tag">/deep-work</span>
+        <span class="tag">/break</span>
+        <span class="tag">/record-idea</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="fab" title="速记" data-toast="已添加速记">✚</button>
+  <div class="speed-dial">
+    <button data-toast="新任务">新任务</button>
+    <button data-modal-open>开模态</button>
+    <button data-drawer-open>开抽屉</button>
+  </div>
+
+  <script>
+    const API_BASE = "";
+    const components = [
+      { name: "主按钮", type: "button-primary" }, //1
+      { name: "线框按钮", type: "button-ghost" }, //2
+      { name: "危险按钮", type: "button-danger" }, //3
+      { name: "图标按钮", type: "button-icon" }, //4
+      { name: "Toggle 开关", type: "toggle" }, //5
+      { name: "复选框组", type: "checkbox" }, //6
+      { name: "单选组", type: "radio" }, //7
+      { name: "滑块", type: "slider" }, //8
+      { name: "文本输入", type: "input" }, //9
+      { name: "搜索框", type: "search" }, //10
+      { name: "多行文本域", type: "textarea" }, //11
+      { name: "下拉选择", type: "select" }, //12
+      { name: "标签 Chips", type: "chips" }, //13
+      { name: "徽章 Badge", type: "badge" }, //14
+      { name: "Tooltip 提示", type: "tooltip" }, //15
+      { name: "Toast 触发", type: "toast" }, //16
+      { name: "Alert 横幅", type: "alert" }, //17
+      { name: "进度条", type: "progress" }, //18
+      { name: "步骤条 Steps", type: "steps" }, //19
+      { name: "分页器", type: "pagination" }, //20
+      { name: "选项卡 Tabs", type: "tabs" }, //21
+      { name: "折叠面板 Accordion", type: "accordion" }, //22
+      { name: "面包屑 Breadcrumb", type: "breadcrumb" }, //23
+      { name: "胶囊导航", type: "pillnav" }, //24
+      { name: "树形/层级", type: "tree" }, //25
+      { name: "统计卡片", type: "stat" }, //26
+      { name: "KPI 仪表", type: "kpi" }, //27
+      { name: "迷你趋势 Spark", type: "spark" }, //28
+      { name: "图表占位 Chart", type: "chart" }, //29
+      { name: "热力格 Heatmap", type: "heatmap" }, //30
+      { name: "数据表格", type: "table" }, //31
+      { name: "时间线 Timeline", type: "timeline" }, //32
+      { name: "看板 Kanban", type: "kanban" }, //33
+      { name: "月历 Calendar", type: "calendar" }, //34
+      { name: "日程格 Scheduling", type: "schedule" }, //35
+      { name: "时钟 Clock", type: "clock" }, //36
+      { name: "番茄钟 Pomodoro", type: "pomodoro" }, //37
+      { name: "习惯打卡", type: "habit" }, //38
+      { name: "目标追踪", type: "goal" }, //39
+      { name: "上传 / Dropzone", type: "upload" }, //40
+      { name: "文件列表", type: "filelist" }, //41
+      { name: "通知中心", type: "notifications" }, //42
+      { name: "消息/聊天", type: "chat" }, //43
+      { name: "评论卡片", type: "comment" }, //44
+      { name: "头像堆叠", type: "avatars" }, //45
+      { name: "命令面板", type: "command" }, //46
+      { name: "快捷键提示", type: "shortcuts" }, //47
+      { name: "模态窗口", type: "modal" }, //48
+      { name: "侧边抽屉", type: "drawer" }, //49
+      { name: "Popover / 气泡", type: "popover" }, //50
+      { name: "浮动操作 FAB", type: "fab" }, //51
+      { name: "Speed Dial", type: "speeddial" }, //52
+      { name: "Skeleton Loader", type: "skeleton" }, //53
+      { name: "色板 Swatches", type: "swatches" }, //54
+      { name: "过滤 Tags", type: "filters" }, //55
+      { name: "地图占位 Map", type: "map" }, //56
+      { name: "数据透视摘要", type: "summary" }, //57
+      { name: "快捷链接", type: "quicklinks" }, //58
+      { name: "里程碑 / 进阶", type: "milestone" }, //59
+      { name: "高级表单", type: "form" } //60
+    ];
+
+    const grid = document.getElementById("component-grid");
+    const toastStack = document.getElementById("toast-stack");
+    const modal = document.getElementById("demo-modal");
+    const drawer = document.getElementById("demo-drawer");
+    const command = document.getElementById("command-panel");
+
+    components.forEach((item, index) => {
+      const card = document.createElement("div");
+      card.className = "component-card";
+      const head = document.createElement("div");
+      head.className = "card-head";
+      head.innerHTML = `<span class="pill">#${index + 1}</span><span>${item.name}</span>`;
+      const body = document.createElement("div");
+      body.className = "body";
+      body.appendChild(renderComponent(item));
+      card.append(head, body);
+      grid.appendChild(card);
+    });
+
+    function renderComponent(item) {
+      const wrap = document.createElement("div");
+      wrap.className = "mini";
+      switch (item.type) {
+        case "button-primary":
+          wrap.innerHTML = `<button class="btn btn-primary">主按钮</button>`;
+          break;
+        case "button-ghost":
+          wrap.innerHTML = `<button class="btn btn-ghost">线框按钮</button>`;
+          break;
+        case "button-danger":
+          wrap.innerHTML = `<button class="btn" style="background:#ffcc00;">危险按钮</button>`;
+          break;
+        case "button-icon":
+          wrap.innerHTML = `<button class="btn btn-ghost">★</button><button class="btn btn-primary">⚡</button>`;
+          break;
+        case "toggle":
+          wrap.innerHTML = `<div class="toggle" data-toggle></div>`;
+          break;
+        case "checkbox":
+          wrap.innerHTML = `
+            <label><input type="checkbox" checked> 今日深度工作</label>
+            <label><input type="checkbox"> Inbox Zero</label>`;
+          break;
+        case "radio":
+          wrap.innerHTML = `
+            <label><input type="radio" name="r1" checked> 全天</label>
+            <label><input type="radio" name="r1"> 上午</label>`;
+          break;
+        case "slider":
+          wrap.innerHTML = `<input type="range" min="0" max="100" value="48">`;
+          break;
+        case "input":
+          wrap.innerHTML = `<input class="input" placeholder="写点什么...">`;
+          break;
+        case "search":
+          wrap.innerHTML = `<input class="input" placeholder="搜索任务 /#标签">`;
+          break;
+        case "textarea":
+          wrap.innerHTML = `<textarea class="input" rows="3" style="height:84px;">今日想法...</textarea>`;
+          break;
+        case "select":
+          wrap.innerHTML = `<select class="input"><option>优先级 · 高</option><option>优先级 · 中</option><option>优先级 · 低</option></select>`;
+          break;
+        case "chips":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">#设计</span><span class="tag">#写作</span><span class="tag">#深度工作</span></div>`;
+          break;
+        case "badge":
+          wrap.innerHTML = `<span class="badge">亮色</span><span class="badge">锐度</span><span class="badge">Brute</span>`;
+          break;
+        case "tooltip":
+          wrap.innerHTML = `<span title="hover 即见提示" class="tag">悬停提示</span>`;
+          break;
+        case "toast":
+          wrap.innerHTML = `<button class="btn btn-primary" data-toast="定时同步完成">弹 Toast</button>`;
+          break;
+        case "alert":
+          wrap.innerHTML = `<div style="padding:10px 12px; border:var(--border)/2 solid var(--ink); background:#ffe6e9; width:100%; font-weight:700;">⚠️ 今日有 3 个冲突事件</div>`;
+          break;
+        case "progress":
+          wrap.innerHTML = `<div class="progress"><span></span></div>`;
+          break;
+        case "steps":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag" style="background:#d1ffd6;">1. Draft</span><span class="tag">2. Review</span><span class="tag">3. Ship</span></div>`;
+          break;
+        case "pagination":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">Prev</span><span class="tag" style="background:#111;color:#fff;">2</span><span class="tag">3</span><span class="tag">Next</span></div>`;
+          break;
+        case "tabs":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag" style="background:#111;color:#fff;">概览</span><span class="tag">周视图</span><span class="tag">月视图</span></div>`;
+          break;
+        case "accordion":
+          wrap.innerHTML = `<details open><summary><strong>展开/折叠</strong></summary><p style="margin:6px 0 0;">折叠面板内容：快速提示或帮助文档。</p></details>`;
+          break;
+        case "breadcrumb":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">主页</span><span class="tag">数据</span><span class="tag" style="background:#111;color:#fff;">报表</span></div>`;
+          break;
+        case "pillnav":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">个人</span><span class="tag">团队</span><span class="tag" style="background:#ffe599;">公共</span></div>`;
+          break;
+        case "tree":
+          wrap.innerHTML = `<ul style="margin:0; padding-left:18px; font-weight:600;"><li>项目 A<ul><li>设计</li><li>研发</li></ul></li><li>项目 B</li></ul>`;
+          break;
+        case "stat":
+          wrap.innerHTML = `<div class="stat"><div>完成率</div><div>82%</div></div><div class="progress"><span style="width:82%;"></span></div>`;
+          break;
+        case "kpi":
+          wrap.innerHTML = `<div class="stat"><div>深度工作小时</div><div>4.6h</div></div>`;
+          break;
+        case "spark":
+          wrap.innerHTML = `<div class="chart-placeholder" style="height:72px;">Sparkline ↗</div>`;
+          break;
+        case "chart":
+          wrap.innerHTML = `<div class="chart-placeholder">混合图表占位</div>`;
+          break;
+        case "heatmap":
+          wrap.innerHTML = `<div class="chart-placeholder">热力图</div>`;
+          break;
+        case "table":
+          wrap.innerHTML = `
+            <div class="table">
+              <table>
+                <thead><tr><th>任务</th><th>状态</th><th>ETA</th></tr></thead>
+                <tbody>
+                  <tr><td>写周报</td><td>进行中</td><td>今天</td></tr>
+                  <tr><td>设计稿</td><td>阻塞</td><td>明天</td></tr>
+                  <tr><td>复盘</td><td>完成</td><td>周五</td></tr>
+                </tbody>
+              </table>
+            </div>`;
+          break;
+        case "timeline":
+          wrap.innerHTML = `
+            <div class="timeline">
+              <div class="item"><div class="tag">09:00</div><div>站会 + 摸底</div></div>
+              <div class="item"><div class="tag">13:30</div><div>深度工作 · 90min</div></div>
+            </div>`;
+          break;
+        case "kanban":
+          wrap.innerHTML = `
+            <div class="kanban">
+              <div class="lane"><h4>待办</h4><div class="ticket">线框</div><div class="ticket">接口对齐</div></div>
+              <div class="lane"><h4>进行中</h4><div class="ticket">开发登录</div></div>
+              <div class="lane"><h4>完成</h4><div class="ticket">需求澄清</div></div>
+            </div>`;
+          break;
+        case "calendar":
+          wrap.innerHTML = `<div class="calendar">
+            ${Array.from({ length: 14 }).map((_,i)=>`<div class="${i===5?'accented':''}">${i+1}</div>`).join("")}
+          </div>`;
+          break;
+        case "schedule":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">09:00-10:30 深度</span><span class="tag">14:00-15:30 会面</span><span class="tag">20:00-21:00 健身</span></div>`;
+          break;
+        case "clock":
+          wrap.innerHTML = `<div class="stat"><div>当前时间</div><div id="clock-now">--:--</div></div>`;
+          break;
+        case "pomodoro":
+          wrap.innerHTML = `<div class="stat"><div>番茄计时</div><div>25:00</div></div><button class="btn btn-primary" data-toast="番茄已开始">开始</button>`;
+          break;
+        case "habit":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">喝水 ☑</span><span class="tag">阅读 ☑</span><span class="tag" style="background:#ffe6e9;">运动 □</span></div>`;
+          break;
+        case "goal":
+          wrap.innerHTML = `<div class="stat"><div>季度目标 · 上线</div><div>68%</div></div><div class="progress"><span style="width:68%;"></span></div>`;
+          break;
+        case "upload":
+          wrap.innerHTML = `<div class="chart-placeholder" style="border-style:dotted;">拖拽文件到此</div>`;
+          break;
+        case "filelist":
+          wrap.innerHTML = `<ul style="margin:0; padding-left:16px;"><li>Roadmap.pdf</li><li>UI.sketch</li><li>notes.md</li></ul>`;
+          break;
+        case "notifications":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">3 未读</span><span class="tag">2 提及</span></div>`;
+          break;
+        case "chat":
+          wrap.innerHTML = `<div style="display:grid; gap:6px; width:100%;"><div class="ticket">你：今晚同步？</div><div class="ticket" style="background:#e6ffe6;">AI：已排期，放心！</div></div>`;
+          break;
+        case "comment":
+          wrap.innerHTML = `<div class="ticket" style="width:100%;">“这个设计很敢，很 Brute。” — PM</div>`;
+          break;
+        case "avatars":
+          wrap.innerHTML = `<div class="mini"><span class="badge">AC</span><span class="badge">DM</span><span class="badge">YK</span><span class="badge">+5</span></div>`;
+          break;
+        case "command":
+          wrap.innerHTML = `<button class="btn btn-primary" data-command-open>打开命令面板</button>`;
+          break;
+        case "shortcuts":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">⌘K</span><span class="tag">Ctrl+Shift+P</span><span class="tag">/today</span></div>`;
+          break;
+        case "modal":
+          wrap.innerHTML = `<button class="btn btn-ghost" data-modal-open>展示模态</button>`;
+          break;
+        case "drawer":
+          wrap.innerHTML = `<button class="btn btn-ghost" data-drawer-open>展开抽屉</button>`;
+          break;
+        case "popover":
+          wrap.innerHTML = `<span class="tag" title="气泡提示">Hover 我</span>`;
+          break;
+        case "fab":
+          wrap.innerHTML = `<div class="fab" style="position:static; width:52px; height:52px;">＋</div>`;
+          break;
+        case "speeddial":
+          wrap.innerHTML = `<div style="display:flex; gap:8px;"><button class="btn btn-ghost">指令 A</button><button class="btn btn-primary">指令 B</button></div>`;
+          break;
+        case "skeleton":
+          wrap.innerHTML = `<div class="skeleton"></div><div class="skeleton" style="width:80%;"></div>`;
+          break;
+        case "swatches":
+      wrap.innerHTML = `<div class="swatches"><div class="swatch" style="background:#ff5c8d;"></div><div class="swatch" style="background:#4ce0b3;"></div><div class="swatch" style="background:#4d6aff;"></div><div class="swatch" style="background:#ffd166;"></div></div>`;
+          break;
+        case "filters":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">全部</span><span class="tag" style="background:#111;color:#fff;">高优</span><span class="tag">低优</span></div>`;
+          break;
+        case "map":
+          wrap.innerHTML = `<div class="map-placeholder">地图 / 区域占位</div>`;
+          break;
+        case "summary":
+          wrap.innerHTML = `<ul style="margin:0; padding-left:16px;"><li>本周完成 12/15</li><li>平均专注 4.6h/天</li><li>关键风险 2 个</li></ul>`;
+          break;
+        case "quicklinks":
+          wrap.innerHTML = `<div class="chip-list"><span class="tag">周视图</span><span class="tag">Inbox</span><span class="tag">日报</span></div>`;
+          break;
+        case "milestone":
+          wrap.innerHTML = `<div class="timeline"><div class="item"><div class="tag">M1</div><div>设计稿锁定</div></div><div class="item"><div class="tag">M2</div><div>Beta 提测</div></div></div>`;
+          break;
+        case "form":
+          wrap.innerHTML = `<div class="mini" style="flex-direction:column; align-items:flex-start; width:100%;"><input class="input" placeholder="标题"><select class="input"><option>类别</option><option>工作</option><option>生活</option></select><button class="btn btn-primary" data-toast="表单示例已提交">提 交</button></div>`;
+          break;
+        default:
+          wrap.textContent = "组件占位";
+      }
+      return wrap;
+    }
+
+    document.addEventListener("click", (e) => {
+      if (e.target.dataset.toast) {
+        pushToast(e.target.dataset.toast);
+      }
+      if (e.target.dataset.modalOpen) {
+        modal.classList.add("open");
+      }
+      if (e.target.dataset.modalClose || e.target.closest("[data-modal-close]")) {
+        if (e.target === modal || e.target.dataset.modalClose) {
+          modal.classList.remove("open");
+        }
+      }
+      if (e.target.dataset.drawerOpen) {
+        drawer.classList.add("open");
+      }
+      if (e.target.dataset.drawerClose || e.target.closest("[data-drawer-close]")) {
+        drawer.classList.remove("open");
+      }
+      if (e.target.dataset.commandOpen) {
+        command.classList.add("open");
+      }
+      if (e.target.dataset.commandClose || e.target.closest("[data-command-close]")) {
+        command.classList.remove("open");
+      }
+      if (e.target.closest("[data-toggle]")) {
+        e.target.classList.toggle("active");
+      }
+    });
+
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("open"); });
+    drawer.addEventListener("click", (e) => { if (e.target === drawer) drawer.classList.remove("open"); });
+    command.addEventListener("click", (e) => { if (e.target === command) command.classList.remove("open"); });
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        command.classList.toggle("open");
+      }
+      if (e.key === "Escape") {
+        modal.classList.remove("open");
+        drawer.classList.remove("open");
+        command.classList.remove("open");
+      }
+    });
+
+    function pushToast(message) {
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.textContent = message;
+      toastStack.appendChild(toast);
+      setTimeout(() => toast.remove(), 2600);
+    }
+
+    function updateClock() {
+      const el = document.getElementById("clock-now");
+      if (!el) return;
+      const now = new Date();
+      el.textContent = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // 日程 API 联动
+    const scheduleForm = document.getElementById("schedule-form");
+    const scheduleList = document.getElementById("schedule-list");
+    const syncStatus = document.getElementById("sync-status");
+    const fDate = document.getElementById("f-date");
+    const fTime = document.getElementById("f-time");
+    // 预填当前日期时间
+    const now = new Date();
+    fDate.value = now.toISOString().split("T")[0];
+    fTime.value = now.toTimeString().slice(0, 5);
+
+    async function loadSchedules() {
+      try {
+        syncStatus.textContent = "加载中...";
+        const res = await fetch(`${API_BASE}/api/schedules`);
+        const data = await res.json();
+        syncStatus.textContent = `共 ${data.length} 条`;
+        scheduleList.innerHTML = "";
+        data.forEach((item) => {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = `${item.date} ${item.time} · ${item.title} (${item.repeat})`;
+          tag.style.display = "inline-flex";
+          tag.style.alignItems = "center";
+          tag.style.gap = "6px";
+          const del = document.createElement("button");
+          del.className = "btn btn-ghost";
+          del.style.padding = "6px 10px";
+          del.textContent = "删除";
+          del.onclick = () => removeSchedule(item.id);
+          const wrap = document.createElement("div");
+          wrap.className = "mini";
+          wrap.style.border = "2px solid #111";
+          wrap.style.padding = "4px 6px";
+          wrap.style.borderRadius = "10px";
+          wrap.append(tag, del);
+          scheduleList.appendChild(wrap);
+        });
+      } catch (e) {
+        syncStatus.textContent = "加载失败";
+      }
+    }
+
+    async function removeSchedule(id) {
+      await fetch(`${API_BASE}/api/schedules?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      pushToast("已删除日程");
+      loadSchedules();
+    }
+
+    scheduleForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById("f-title").value,
+        date: fDate.value,
+        time: fTime.value,
+        repeat: document.getElementById("f-repeat").value
+      };
+      const res = await fetch(`${API_BASE}/api/schedules`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        pushToast("提交失败");
+        return;
+      }
+      pushToast("已同步到 Java");
+      document.getElementById("f-title").value = "";
+      loadSchedules();
+    });
+
+    loadSchedules();
+  </script>
+</body>
+</html>
