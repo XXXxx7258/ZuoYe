@@ -1,13 +1,3 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <schedules>
-  <entry>
-    <id>3165b74f-5e87-4788-b92b-ecdf23fc2e02</id>
-    <title>拉练</title>
-    <date>2025-11-21</date>
-    <time>21:08</time>
-    <repeat>NONE</repeat>
-    <musicTitle>初恋 - 回春丹</musicTitle>
-    <musicUrl>http://m801.music.126.net/20251121213016/053ed840796ac5eb7d49ab35a1fbdcf4/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/14096430531/9f3c/0fc7/3726/817b00b93e3d1ece809fb5b97511e111.mp3?vuutv=JvxiL8Owc1vqTPjEKAP3Ars0ofJ8449OYRd6JDfLk7dDErGgp87Tz0P0oF7VC52mMCyia0ZZUcZNAakihEmgqd4hybHePy9tLQBqaygkT5thRHVrOcEi1MFHZY2cPArvioKrShkt2Sn9brW3SJl0FgrBQmmVB5PHgA3NloNxTvM=</musicUrl>
-    <musicFile>music\3165b74f-5e87-4788-b92b-ecdf23fc2e02.mp3</musicFile>
-  </entry>
 </schedules>
