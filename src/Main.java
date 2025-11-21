@@ -807,7 +807,9 @@ public class Main {
             dialog.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    mp3Player.stop();
+                    if (mp3Player != null) {
+                        mp3Player.stop();
+                    }
                 }
             });
             dialog.setVisible(true);
@@ -1063,4 +1065,5 @@ public class Main {
         }
     }
 }
+
 
