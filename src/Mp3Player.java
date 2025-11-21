@@ -20,27 +20,46 @@ public final class Mp3Player {
     private Future<?> currentTask;
     private Player currentPlayer;
     private BufferedInputStream currentStream;
+    private long currentPlayId = 0;
+    private long playSeq = 0;
 
     public synchronized boolean play(Path file) {
         if (file == null || !file.toFile().exists() || !file.toFile().canRead()) {
             return false;
         }
         stop();
-        currentTask = pool.submit(() -> {
-            try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file.toFile()))) {
+        final long playId = ++playSeq;
+        Future<?> submitted = pool.submit(() -> {
+            BufferedInputStream in = null;
+            Player localPlayer = null;
+            try {
+                in = new BufferedInputStream(new FileInputStream(file.toFile()));
+                localPlayer = new Player(in);
                 synchronized (this) {
+                    currentPlayId = playId;
                     currentStream = in;
-                    currentPlayer = new Player(in);
+                    currentPlayer = localPlayer;
                 }
-                currentPlayer.play();
+                localPlayer.play();
             } catch (Exception ex) {
                 System.err.println("MP3 play failed: " + ex.getMessage());
             } finally {
                 synchronized (this) {
-                    closePlayerQuietly();
+                    if (currentPlayId == playId) {
+                        closeQuietly(localPlayer, in);
+                        currentTask = null;
+                        currentStream = null;
+                        currentPlayer = null;
+                        currentPlayId = 0;
+                    } else {
+                        closeQuietly(localPlayer, in);
+                    }
                 }
             }
         });
+        synchronized (this) {
+            currentTask = submitted;
+        }
         return true;
     }
 
@@ -52,22 +71,34 @@ public final class Mp3Player {
                 System.err.println("MP3 stop failed: " + ex.getMessage());
             }
         }
-        closePlayerQuietly();
+        if (currentStream != null) {
+            try {
+                currentStream.close();
+            } catch (IOException ignored) {
+            }
+        }
         if (currentTask != null) {
             currentTask.cancel(true);
             currentTask = null;
         }
+        currentPlayer = null;
+        currentStream = null;
+        currentPlayId = 0;
     }
 
-    private void closePlayerQuietly() {
+    private void closeQuietly(Player player, BufferedInputStream stream) {
         try {
-            if (currentStream != null) {
-                currentStream.close();
+            if (player != null) {
+                player.close();
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            if (stream != null) {
+                stream.close();
             }
         } catch (IOException ignored) {
         }
-        currentStream = null;
-        currentPlayer = null;
     }
 
     public synchronized void shutdown() {
