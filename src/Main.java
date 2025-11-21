@@ -722,14 +722,12 @@ public class Main {
             boolean played = false;
             Path file = entry.getMusicFilePath();
             if (file != null && Files.exists(file)) {
-                mp3Player.play(file);
-                played = true;
+                played = mp3Player.play(file);
             } else if (entry.getMusicUrl() != null && !entry.getMusicUrl().isBlank()) {
                 String saved = musicService.downloadMusic(entry.getMusicUrl(), entry.getId());
                 if (!saved.isBlank()) {
                     Path downloaded = Paths.get(saved);
-                    mp3Player.play(downloaded);
-                    played = true;
+                    played = mp3Player.play(downloaded);
                 }
             }
             if (!played) {
