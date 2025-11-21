@@ -804,6 +804,12 @@ public class Main {
 
             dialog.setContentPane(root);
             dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            dialog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    mp3Player.stop();
+                }
+            });
             dialog.setVisible(true);
         }
 
@@ -1057,3 +1063,4 @@ public class Main {
         }
     }
 }
+

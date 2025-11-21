@@ -38,7 +38,6 @@ public final class Mp3Player {
             } finally {
                 synchronized (this) {
                     closePlayerQuietly();
-                    currentTask = null;
                 }
             }
         });
