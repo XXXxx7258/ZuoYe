@@ -48,43 +48,22 @@ public final class MusicService {
     }
 
     public List<MusicComment> hotComments(String songId, int limit) {
+        List<MusicComment> list = fetchCommentsFromBase(PRIMARY_BASE, songId, limit);
+        if (list.isEmpty()) {
+            list = fetchCommentsFromBase(FALLBACK_BASE, songId, limit);
+        }
+        return list;
+    }
+
+    private List<MusicComment> fetchCommentsFromBase(String base, String songId, int limit) {
         List<MusicComment> list = new ArrayList<>();
         try {
-            String url = PRIMARY_BASE + "/comment/hot?id=" + URLEncoder.encode(songId, StandardCharsets.UTF_8) + "&type=0";
+            String url = base + "/comment/hot?id=" + URLEncoder.encode(songId, StandardCharsets.UTF_8) + "&type=0";
             HttpResponse<String> res = sendGet(url);
             if (res == null) {
                 return list;
             }
-            Object root = MiniJson.parse(res.body());
-            if (!(root instanceof Map)) {
-                return list;
-            }
-            Object hot = ((Map<?, ?>) root).get("hotComments");
-            if (!(hot instanceof List)) {
-                return list;
-            }
-            List<?> arr = (List<?>) hot;
-            for (Object o : arr) {
-                if (!(o instanceof Map)) {
-                    continue;
-                }
-                Map<?, ?> c = (Map<?, ?>) o;
-                String nick = valueFromUser(c.get("user"));
-                String time = safeString(c.get("timeStr"));
-                if (time.isBlank()) {
-                    long epoch = asNumber(c.get("time")).longValue();
-                    if (epoch > 0) {
-                        time = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault())
-                            .format(Instant.ofEpochMilli(epoch));
-                    }
-                }
-                String liked = String.valueOf(asNumber(c.get("likedCount")));
-                String content = safeString(c.get("content"));
-                list.add(new MusicComment(nick, time, liked, content));
-                if (list.size() >= limit) {
-                    break;
-                }
-            }
+            list = parseComments(res.body(), limit);
             if (list.isEmpty()) {
                 list = parseCommentsFallback(res.body(), limit);
             }
@@ -318,6 +297,41 @@ public final class MusicService {
             return unescape(m.group(1)).replace("\\\\n", "\n");
         }
         return "";
+    }
+
+    private List<MusicComment> parseComments(String body, int limit) {
+        List<MusicComment> list = new ArrayList<>();
+        Object root = MiniJson.parse(body);
+        if (!(root instanceof Map)) {
+            return list;
+        }
+        Object hot = ((Map<?, ?>) root).get("hotComments");
+        if (!(hot instanceof List)) {
+            return list;
+        }
+        List<?> arr = (List<?>) hot;
+        for (Object o : arr) {
+            if (!(o instanceof Map)) {
+                continue;
+            }
+            Map<?, ?> c = (Map<?, ?>) o;
+            String nick = valueFromUser(c.get("user"));
+            String time = safeString(c.get("timeStr"));
+            if (time.isBlank()) {
+                long epoch = asNumber(c.get("time")).longValue();
+                if (epoch > 0) {
+                    time = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault())
+                        .format(Instant.ofEpochMilli(epoch));
+                }
+            }
+            String liked = String.valueOf(asNumber(c.get("likedCount")));
+            String content = safeString(c.get("content"));
+            list.add(new MusicComment(nick, time, liked, content));
+            if (list.size() >= limit) {
+                break;
+            }
+        }
+        return list;
     }
 
     private List<MusicComment> parseCommentsFallback(String body, int limit) {

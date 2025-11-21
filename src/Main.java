@@ -30,6 +30,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -622,12 +623,13 @@ public class Main {
 
         private void handleSchedulesPost(HttpExchange exchange) throws IOException {
             String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            String title = jsonValue(body, "title");
-            String dateStr = jsonValue(body, "date");
-            String timeStr = jsonValue(body, "time");
-            String repeatStr = jsonValue(body, "repeat");
-            String musicTitle = jsonValue(body, "musicTitle");
-            String musicUrl = jsonValue(body, "musicUrl");
+            Map<String, Object> payload = parseJsonMap(body);
+            String title = str(payload.get("title"));
+            String dateStr = str(payload.get("date"));
+            String timeStr = str(payload.get("time"));
+            String repeatStr = str(payload.get("repeat"));
+            String musicTitle = str(payload.get("musicTitle"));
+            String musicUrl = str(payload.get("musicUrl"));
             if (title.isBlank() || dateStr.isBlank() || timeStr.isBlank()) {
                 sendResponse(exchange, 400, "{\"error\":\"title/date/time 不能为空\"}", "application/json");
                 return;
@@ -668,23 +670,18 @@ public class Main {
                 sendResponse(exchange, 404, "{\"error\":\"未找到\"}", "application/json");
             }
         }
+        private Map<String, Object> parseJsonMap(String json) {
+            Object obj = MiniJson.parse(json);
+            if (obj instanceof Map<?, ?> map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> m = (Map<String, Object>) map;
+                return m;
+            }
+            return Map.of();
+        }
 
-        private String jsonValue(String json, String key) {
-            String needle = "\"" + key + "\"";
-            int idx = json.indexOf(needle);
-            if (idx < 0) {
-                return "";
-            }
-            int colon = json.indexOf(':', idx);
-            if (colon < 0) {
-                return "";
-            }
-            int quoteStart = json.indexOf('"', colon + 1);
-            int quoteEnd = json.indexOf('"', quoteStart + 1);
-            if (quoteStart < 0 || quoteEnd < 0) {
-                return "";
-            }
-            return json.substring(quoteStart + 1, quoteEnd);
+        private String str(Object o) {
+            return o == null ? "" : o.toString();
         }
 
         private String queryValue(String query, String key) {
