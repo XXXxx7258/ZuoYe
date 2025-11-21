@@ -41,6 +41,12 @@ java -cp \"out;lib/jlayer-1.0.1.jar\" Main --gui
 - 音乐区：网易云搜索/试听/设为提醒，热评卡片，歌词随播放时间高亮滚动。
 - Hero 区提示访问地址；命令面板支持快捷键 Ctrl/Cmd+K。
 
+<img width="1919" height="1029" alt="image" src="https://github.com/user-attachments/assets/c33e0e65-161f-4019-b493-e1251b1c8636" />
+
+<img width="1919" height="1028" alt="image" src="https://github.com/user-attachments/assets/f083bb82-5e24-4743-9a9a-13f51f1dce50" />
+
+
+
 ## 数据存储
 - 路径：工作目录 `schedule.xml`
 - 编码：UTF-8
