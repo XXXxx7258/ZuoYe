@@ -852,6 +852,9 @@ public class Main {
 
         private void showReminder(ScheduleEntry entry) {
             playAudioForEntry(entry);
+            if (trayIconWrapper != null && trayIconWrapper.isSupported()) {
+                trayIconWrapper.showReminder(entry);
+            }
             SwingUtilities.invokeLater(() -> showReminderDialog(entry));
         }
 
