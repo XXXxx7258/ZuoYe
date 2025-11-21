@@ -61,6 +61,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.DateFormatter;
+import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -264,6 +265,7 @@ public class Main {
         private static final int HTTP_PORT = 18080;
         private static final Path DASHBOARD_HTML = Paths.get("neo_brutalism_dashboard.html");
         private static final Path MUSIC_DIR = Paths.get("music");
+        private static final Path TRAY_ICON = Paths.get("1762662822056.png");
         private static final int MUSIC_SEARCH_LIMIT = 6;
 
         private final JFrame frame = new JFrame("日程提醒");
@@ -1050,7 +1052,13 @@ public class Main {
                 }
             }
 
-            private Image buildImage() {
+        private Image buildImage() {
+                try {
+                    if (Files.exists(TRAY_ICON)) {
+                        return ImageIO.read(TRAY_ICON.toFile());
+                    }
+                } catch (IOException ignored) {
+                }
                 int size = 16;
                 BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g = image.createGraphics();
@@ -1065,5 +1073,3 @@ public class Main {
         }
     }
 }
-
-
