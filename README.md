@@ -5,7 +5,7 @@
 
 ## 核心功能
 - 日程管理：新增/删除、按时间排序，重复事件自动滚动到未来。
-- 提醒：后台线程每分钟检查 1 分钟内将到事件，托盘气泡或弹窗提醒。
+- 提醒：后台线程每分钟检查 1 分钟内将到事件，内置 Neo 风格弹窗提醒，可暂停铃声或关闭（铃声用内置 mp3 播放，失败回退系统提示音）。
 - 持久化：工作目录 `schedule.xml`（UTF-8），字段含 id/title/date/time/repeat/musicTitle/musicUrl/musicFile。
 - HTTP API：内置 `http://localhost:18080`，为前端提供 CRUD + 音乐搜索/热评/歌词。
 - 前端：Neo-Brutalism 单页，表单新增、列表删除，60 组件展厅+命令面板等交互；音乐区支持搜索/试听/设置提醒音乐、查看热评、歌词随播放高亮滚动。
@@ -13,15 +13,15 @@
 
 ## 快速开始
 ```bash
-# 编译
-javac -encoding UTF-8 -d out src/Main.java src/MusicService.java src/MiniJson.java
+# 编译（需 jlayer 播放 mp3，jar 已在 lib/）
+javac -encoding UTF-8 -cp lib/jlayer-1.0.1.jar -d out src/*.java
 
 # 运行（无窗，托盘+HTTP+提醒）
-java -cp out Main
+java -cp \"out;lib/jlayer-1.0.1.jar\" Main
 
 # 运行（显示 Swing 窗口）
-java -cp out Main --gui
-# 或环境变量 SCHEDULER_GUI=true java -cp out Main
+java -cp \"out;lib/jlayer-1.0.1.jar\" Main --gui
+# 或环境变量 SCHEDULER_GUI=true java -cp \"out;lib/jlayer-1.0.1.jar\" Main
 ```
 启动后浏览器访问 `http://localhost:18080`，直连前端页面。
 
@@ -50,13 +50,14 @@ java -cp out Main --gui
 ## 提醒与托盘
 - 轮询：每 1 分钟扫描当前~+1 分钟的事件。
 - 托盘菜单：显示窗口 / 退出并保存。
-- 无托盘支持时自动回退为本地弹窗。
+- 弹窗提醒：Neo 风格对话框，展示标题/时间，按钮可暂停铃声或关闭；铃声用内置 mp3 播放，失败回退系统提示音。
 
 ## 目录结构
 ```
-src/Main.java                  # 后端入口，托盘+HTTP+逻辑
+src/Main.java                  # 后端入口，托盘+HTTP+逻辑，提醒调用内置 mp3 播放
 src/MusicService.java          # 网易云搜索/热评/歌词/下载
 src/MiniJson.java              # 轻量 JSON 解析
+src/Mp3Player.java             # 基于 jlayer 的简易 MP3 播放
 neo_brutalism_dashboard.html   # 前端单页
 schedule.xml                   # 运行生成的日程数据
 out/                           # 编译输出（示例目录）

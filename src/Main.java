@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +46,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -277,6 +279,7 @@ public class Main {
         private final Object lock = new Object();
         private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(new DaemonFactory());
         private final MusicService musicService = new MusicService(MUSIC_DIR);
+        private final Mp3Player mp3Player = new Mp3Player();
         private HttpServer httpServer;
         private TrayIconWrapper trayIconWrapper;
         private boolean browserOpened = false;
@@ -719,25 +722,89 @@ public class Main {
             boolean played = false;
             Path file = entry.getMusicFilePath();
             if (file != null && Files.exists(file)) {
-                try {
-                    if (Desktop.isDesktopSupported()) {
-                        Desktop.getDesktop().open(file.toFile());
-                        played = true;
-                    }
-                } catch (Exception ignored) {
-                }
+                played = mp3Player.play(file);
             } else if (entry.getMusicUrl() != null && !entry.getMusicUrl().isBlank()) {
-                try {
-                    if (Desktop.isDesktopSupported()) {
-                        Desktop.getDesktop().browse(URI.create(entry.getMusicUrl()));
-                        played = true;
-                    }
-                } catch (Exception ignored) {
+                String saved = musicService.downloadMusic(entry.getMusicUrl(), entry.getId());
+                if (!saved.isBlank()) {
+                    Path downloaded = Paths.get(saved);
+                    played = mp3Player.play(downloaded);
                 }
             }
             if (!played) {
                 Toolkit.getDefaultToolkit().beep();
             }
+        }
+
+        private void showReminderDialog(ScheduleEntry entry) {
+            JDialog dialog = new JDialog(frame, "日程提醒", false);
+            dialog.setAlwaysOnTop(true);
+            dialog.setSize(380, 240);
+            dialog.setLocationRelativeTo(frame);
+            dialog.setResizable(false);
+
+            Color ink = new Color(0x111111);
+            Color accent = new Color(0xFFDD33);
+            Color bg = new Color(0xF7F7F7);
+
+            JPanel root = new JPanel(new BorderLayout(12, 12));
+            root.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+            root.setBackground(bg);
+
+            JPanel card = new JPanel(new BorderLayout(12, 12));
+            card.setBorder(BorderFactory.createLineBorder(ink, 3, true));
+            card.setBackground(bg);
+
+            JLabel header = new JLabel("⚡ 日程提醒", SwingConstants.LEFT);
+            header.setOpaque(true);
+            header.setBackground(accent);
+            header.setForeground(ink);
+            header.setFont(header.getFont().deriveFont(Font.BOLD, 16f));
+            header.setBorder(new EmptyBorder(8, 10, 8, 10));
+
+            JLabel title = new JLabel(entry.getTitle(), SwingConstants.LEFT);
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
+            title.setForeground(ink);
+            title.setBorder(new EmptyBorder(6, 10, 2, 10));
+
+            JLabel time = new JLabel(entry.getDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")), SwingConstants.LEFT);
+            time.setForeground(new Color(0x444444));
+            time.setBorder(new EmptyBorder(0, 10, 10, 10));
+
+            JPanel center = new JPanel();
+            center.setLayout(new BorderLayout());
+            center.setBackground(bg);
+            center.add(title, BorderLayout.NORTH);
+            center.add(time, BorderLayout.CENTER);
+
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+            actions.setOpaque(false);
+            JButton stopBtn = new JButton("暂停铃声");
+            stopBtn.setBackground(accent);
+            stopBtn.setForeground(ink);
+            stopBtn.setFocusPainted(false);
+            stopBtn.setBorder(BorderFactory.createLineBorder(ink, 2));
+            stopBtn.addActionListener(e -> mp3Player.stop());
+
+            JButton closeBtn = new JButton("关闭提醒");
+            closeBtn.setBackground(Color.WHITE);
+            closeBtn.setForeground(ink);
+            closeBtn.setFocusPainted(false);
+            closeBtn.setBorder(BorderFactory.createLineBorder(ink, 2));
+            closeBtn.addActionListener(e -> {
+                mp3Player.stop();
+                dialog.dispose();
+            });
+            actions.add(stopBtn);
+            actions.add(closeBtn);
+
+            card.add(header, BorderLayout.NORTH);
+            card.add(center, BorderLayout.CENTER);
+            card.add(actions, BorderLayout.SOUTH);
+            root.add(card, BorderLayout.CENTER);
+
+            dialog.setContentPane(root);
+            dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            dialog.setVisible(true);
         }
 
         private void sendResponse(HttpExchange exchange, int status, String body, String contentType) throws IOException {
@@ -785,14 +852,8 @@ public class Main {
             playAudioForEntry(entry);
             if (trayIconWrapper != null && trayIconWrapper.isSupported()) {
                 trayIconWrapper.showReminder(entry);
-            } else {
-                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
-                    frame,
-                    entry.getTitle(),
-                    "日程提醒",
-                    JOptionPane.INFORMATION_MESSAGE
-                ));
             }
+            SwingUtilities.invokeLater(() -> showReminderDialog(entry));
         }
 
         private void setupTray() {
@@ -821,6 +882,7 @@ public class Main {
             if (trayIconWrapper != null) {
                 trayIconWrapper.remove();
             }
+            mp3Player.shutdown();
             System.exit(0);
         }
 
