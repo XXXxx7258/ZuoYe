@@ -1052,7 +1052,7 @@ public class Main {
                 }
             }
 
-        private Image buildImage() {
+            private Image buildImage() {
                 try {
                     if (Files.exists(TRAY_ICON)) {
                         return ImageIO.read(TRAY_ICON.toFile());
