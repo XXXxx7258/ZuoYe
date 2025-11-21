@@ -1,31 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <schedules>
   <entry>
-    <id>f2bc425c-411c-4bf7-9498-63ac7c2b7af9</id>
-    <title>123</title>
-    <date>2025-11-20</date>
-    <time>12:36</time>
-    <repeat>NONE</repeat>
-  </entry>
-  <entry>
-    <id>87be80a9-659f-4ab1-99c2-ca76709dee28</id>
-    <title>123</title>
-    <date>2025-11-20</date>
-    <time>12:53</time>
-    <repeat>NONE</repeat>
-  </entry>
-  <entry>
-    <id>2f0a4aa3-a751-4c4d-bf62-9a7f4c6c6b17</id>
-    <title>123</title>
-    <date>2025-11-20</date>
-    <time>12:53</time>
-    <repeat>NONE</repeat>
-  </entry>
-  <entry>
-    <id>ef84548f-d296-4d01-8c4b-ba9a183eac96</id>
+    <id>3165b74f-5e87-4788-b92b-ecdf23fc2e02</id>
     <title>拉练</title>
-    <date>2025-11-20</date>
-    <time>13:11</time>
+    <date>2025-11-21</date>
+    <time>21:08</time>
     <repeat>NONE</repeat>
+    <musicTitle>初恋 - 回春丹</musicTitle>
+    <musicUrl>http://m801.music.126.net/20251121213016/053ed840796ac5eb7d49ab35a1fbdcf4/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/14096430531/9f3c/0fc7/3726/817b00b93e3d1ece809fb5b97511e111.mp3?vuutv=JvxiL8Owc1vqTPjEKAP3Ars0ofJ8449OYRd6JDfLk7dDErGgp87Tz0P0oF7VC52mMCyia0ZZUcZNAakihEmgqd4hybHePy9tLQBqaygkT5thRHVrOcEi1MFHZY2cPArvioKrShkt2Sn9brW3SJl0FgrBQmmVB5PHgA3NloNxTvM=</musicUrl>
+    <musicFile>music\3165b74f-5e87-4788-b92b-ecdf23fc2e02.mp3</musicFile>
   </entry>
 </schedules>
