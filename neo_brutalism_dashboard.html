@@ -476,11 +476,39 @@
             <option value="DAILY">每天</option>
             <option value="WEEKLY">每周</option>
           </select>
+          <input type="hidden" id="f-music-title">
+          <input type="hidden" id="f-music-url">
           <button class="btn btn-primary" type="submit">同步到 Java</button>
         </form>
+        <div id="selected-music" style="margin-top:8px; font-size:13px; opacity:0.85;">提醒音乐：系统提示音（未选择）</div>
         <div style="margin-top:14px;">
           <div class="card-head" style="margin-bottom:8px;"><span class="pill">当前日程</span><small id="sync-status">加载中...</small></div>
           <div id="schedule-list" class="chip-list"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="padding:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div>
+            <div style="font-size:18px; font-weight:800;">网易云音乐 · 搜索 / 试听 / 设为提醒</div>
+            <div style="opacity:0.85;">前端可直接听歌，选择后提交日程将下载为本地提醒铃声，未选择则使用系统提示音。</div>
+          </div>
+          <div class="pill-ink">API <span>/api/music/search</span></div>
+        </div>
+        <form id="music-search-form" class="inline-form">
+          <input class="input" id="music-query" placeholder="搜索网易云歌曲，例如：起风了 / 旅行">
+          <button class="btn btn-primary" type="submit">搜索歌曲</button>
+          <button class="btn btn-ghost" type="button" id="music-clear">清空选择</button>
+        </form>
+        <div id="music-selected" class="pill" style="margin-top:10px; display:inline-flex; gap:8px; align-items:center; border:2px solid #111;">当前提醒音乐：系统提示音</div>
+        <div id="music-results" class="grid" style="margin-top:12px; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px;"></div>
+        <div style="margin-top:14px;">
+          <div class="card-head" style="margin-bottom:8px;"><span class="pill">网易云热评</span><small id="music-comments-title">选择歌曲查看热门评论</small></div>
+          <div id="music-comments" class="chip-list"></div>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="card-head" style="margin-bottom:8px;"><span class="pill">歌词</span><small id="music-lyric-title">选择歌曲查看歌词</small></div>
+          <div id="music-lyric" style="background:#f5f5f5; border:2px solid #111; padding:10px; max-height:180px; overflow-y:auto; white-space:pre-wrap;"></div>
         </div>
       </section>
 
@@ -905,10 +933,270 @@
     const syncStatus = document.getElementById("sync-status");
     const fDate = document.getElementById("f-date");
     const fTime = document.getElementById("f-time");
+    const fMusicTitle = document.getElementById("f-music-title");
+    const fMusicUrl = document.getElementById("f-music-url");
+    const selectedMusicLabel = document.getElementById("selected-music");
+    const musicForm = document.getElementById("music-search-form");
+    const musicQuery = document.getElementById("music-query");
+    const musicResults = document.getElementById("music-results");
+    const musicSelected = document.getElementById("music-selected");
+    const musicClear = document.getElementById("music-clear");
+    const musicComments = document.getElementById("music-comments");
+    const musicCommentsTitle = document.getElementById("music-comments-title");
+    const musicLyric = document.getElementById("music-lyric");
+    const musicLyricTitle = document.getElementById("music-lyric-title");
+    const audioMap = {};
+    let currentLyric = [];
+    let currentAudio = null;
+    let currentLyricIdx = -1;
     // 预填当前日期时间
     const now = new Date();
     fDate.value = now.toISOString().split("T")[0];
     fTime.value = now.toTimeString().slice(0, 5);
+    renderSelectedMusic();
+
+    function renderSelectedMusic() {
+      const label = fMusicTitle && fMusicTitle.value ? `提醒音乐：♪ ${fMusicTitle.value}` : "提醒音乐：系统提示音（未选择）";
+      if (selectedMusicLabel) {
+        selectedMusicLabel.textContent = label;
+      }
+      if (musicSelected) {
+        musicSelected.textContent = fMusicTitle && fMusicTitle.value ? `当前提醒音乐：♪ ${fMusicTitle.value}` : "当前提醒音乐：系统提示音";
+      }
+    }
+
+    async function searchMusic(keyword) {
+      if (!musicResults) return;
+      if (!keyword) {
+        musicResults.innerHTML = "<div class='mini'>输入关键词后搜索</div>";
+        return;
+      }
+      musicResults.innerHTML = "<div class='mini'>搜索中...</div>";
+      try {
+        const res = await fetch(`${API_BASE}/api/music/search?q=${encodeURIComponent(keyword)}`);
+        if (!res.ok) throw new Error("搜索失败");
+        const data = await res.json();
+        renderMusicResults(data);
+      } catch (err) {
+        musicResults.innerHTML = "<div class='mini'>搜索失败，请稍后重试</div>";
+      }
+    }
+
+    function renderMusicResults(list = []) {
+      if (!musicResults) return;
+      musicResults.innerHTML = "";
+      if (!list.length) {
+        musicResults.innerHTML = "<div class='mini'>没有搜索到结果</div>";
+        return;
+      }
+      list.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "mini";
+        card.style.border = "2px solid #111";
+        const head = document.createElement("div");
+        head.className = "card-head";
+        const pill = document.createElement("span");
+        pill.className = "pill";
+        pill.textContent = "网易云";
+        const small = document.createElement("small");
+        small.textContent = item.artist || "";
+        head.append(pill, small);
+        const title = document.createElement("div");
+        title.style.fontWeight = "700";
+        title.style.margin = "6px 0";
+        title.textContent = item.title || "未命名";
+        const audio = document.createElement("audio");
+        audio.dataset.songId = item.id;
+        audio.controls = true;
+        audio.style.width = "100%";
+        audio.src = item.url;
+        audioMap[item.id] = audio;
+        const actions = document.createElement("div");
+        actions.style.display = "flex";
+        actions.style.justifyContent = "space-between";
+        actions.style.gap = "8px";
+        const choose = document.createElement("button");
+        choose.className = "btn btn-primary";
+        choose.textContent = "设为提醒";
+        choose.onclick = () => {
+          if (fMusicTitle) fMusicTitle.value = `${item.title} - ${item.artist}`;
+          if (fMusicUrl) fMusicUrl.value = item.url || "";
+          renderSelectedMusic();
+          pushToast("已选择提醒音乐");
+        };
+        const listen = document.createElement("button");
+        listen.className = "btn btn-ghost";
+        listen.textContent = "试听";
+        listen.onclick = () => audio.play();
+        const comments = document.createElement("button");
+        comments.className = "btn btn-ghost";
+        comments.textContent = "热评";
+        comments.onclick = () => loadComments(item.id, item.title);
+        const lyric = document.createElement("button");
+        lyric.className = "btn btn-ghost";
+        lyric.textContent = "歌词";
+        lyric.onclick = () => loadLyric(item.id, item.title, audio);
+        actions.append(choose, listen, comments, lyric);
+        card.append(head, title, audio, actions);
+        musicResults.appendChild(card);
+      });
+    }
+
+    if (musicForm) {
+      musicForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        searchMusic(musicQuery ? musicQuery.value.trim() : "");
+      });
+    }
+    if (musicClear) {
+      musicClear.addEventListener("click", () => {
+        if (fMusicTitle) fMusicTitle.value = "";
+        if (fMusicUrl) fMusicUrl.value = "";
+        renderSelectedMusic();
+        pushToast("已切换为系统提示音");
+      });
+    }
+
+    async function loadComments(id, title) {
+      if (!musicComments) return;
+      musicComments.innerHTML = "<div class='mini'>加载热评中...</div>";
+      if (musicCommentsTitle) {
+        musicCommentsTitle.textContent = `热评 · ${title || ""}`;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/music/comments?id=${encodeURIComponent(id)}`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        renderComments(data);
+      } catch (err) {
+        musicComments.innerHTML = "<div class='mini'>热评获取失败，请稍后重试</div>";
+      }
+    }
+
+    function renderComments(list = []) {
+      if (!musicComments) return;
+      musicComments.innerHTML = "";
+      if (!list.length) {
+        musicComments.innerHTML = "<div class='mini'>暂无热评</div>";
+        return;
+      }
+      list.forEach((c) => {
+        const card = document.createElement("div");
+        card.className = "mini";
+        card.style.border = "2px solid #111";
+        const head = document.createElement("div");
+        head.className = "card-head";
+        const pill = document.createElement("span");
+        pill.className = "pill";
+        pill.textContent = `${c.nick || "热心网友"}`;
+        const small = document.createElement("small");
+        small.textContent = `${c.time || ""} · ♥${c.liked || 0}`;
+        head.append(pill, small);
+        const content = document.createElement("div");
+        content.style.whiteSpace = "pre-wrap";
+        content.style.marginTop = "6px";
+        content.textContent = c.content || "";
+        card.append(head, content);
+        musicComments.appendChild(card);
+      });
+    }
+
+    async function loadLyric(id, title, audio) {
+      if (!musicLyric) return;
+      musicLyric.textContent = "歌词加载中...";
+      if (musicLyricTitle) {
+        musicLyricTitle.textContent = `歌词 · ${title || ""}`;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/music/lyric?id=${encodeURIComponent(id)}`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const lines = parseLyricLines(data.lyric || "");
+        currentLyric = lines;
+        renderLyricLines(lines);
+        bindAudioForLyric(audio || audioMap[id]);
+      } catch (err) {
+        musicLyric.textContent = "歌词获取失败，请稍后重试";
+      }
+    }
+
+    function parseLyricLines(text) {
+      if (!text) return [];
+      const rows = [];
+      text.split(/\r?\n/).forEach((line) => {
+        const match = line.match(/\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,2}))?\](.*)/);
+        if (match) {
+          const min = parseInt(match[1], 10) || 0;
+          const sec = parseInt(match[2], 10) || 0;
+          const ms = parseInt(match[3] || "0", 10) || 0;
+          const time = min * 60 + sec + ms / 100;
+          const textPart = match[4].trim();
+          rows.push({ time, text: textPart });
+        }
+      });
+      // 如果没有时间戳，则全部作为一行纯文本
+      if (!rows.length && text.trim()) {
+        rows.push({ time: 0, text });
+      }
+      return rows.sort((a, b) => a.time - b.time);
+    }
+
+    function renderLyricLines(lines) {
+      currentLyricIdx = -1;
+      musicLyric.innerHTML = "";
+      if (!lines.length) {
+        musicLyric.textContent = "暂无歌词";
+        return;
+      }
+      lines.forEach((l, idx) => {
+        const row = document.createElement("div");
+        row.dataset.idx = idx;
+        row.textContent = l.text || "";
+        row.style.padding = "2px 4px";
+        musicLyric.appendChild(row);
+      });
+    }
+
+    function bindAudioForLyric(audio) {
+      if (!audio) return;
+      if (currentAudio && currentAudio !== audio) {
+        currentAudio.removeEventListener("timeupdate", onLyricTime);
+      }
+      currentAudio = audio;
+      currentAudio.addEventListener("timeupdate", onLyricTime);
+    }
+
+    function onLyricTime() {
+      if (!currentLyric.length || !currentAudio) return;
+      const t = currentAudio.currentTime;
+      let idx = currentLyric.length - 1;
+      for (let i = 0; i < currentLyric.length; i++) {
+        if (currentLyric[i].time <= t) {
+          idx = i;
+        } else {
+          break;
+        }
+      }
+      if (idx !== currentLyricIdx) {
+        currentLyricIdx = idx;
+        highlightLyric(idx);
+      }
+    }
+
+    function highlightLyric(idx) {
+      const children = musicLyric.children;
+      for (let i = 0; i < children.length; i++) {
+        const el = children[i];
+        if (i === idx) {
+          el.style.background = "#ffe9b5";
+          el.style.fontWeight = "700";
+          el.scrollIntoView({ block: "center", behavior: "smooth" });
+        } else {
+          el.style.background = "";
+          el.style.fontWeight = "normal";
+        }
+      }
+    }
 
     async function loadSchedules() {
       try {
@@ -920,7 +1208,8 @@
         data.forEach((item) => {
           const tag = document.createElement("span");
           tag.className = "tag";
-          tag.textContent = `${item.date} ${item.time} · ${item.title} (${item.repeat})`;
+          const musicMark = item.musicTitle ? ` ♪${item.musicTitle}` : "";
+          tag.textContent = `${item.date} ${item.time} · ${item.title}${musicMark} (${item.repeat})`;
           tag.style.display = "inline-flex";
           tag.style.alignItems = "center";
           tag.style.gap = "6px";
@@ -954,7 +1243,9 @@
         title: document.getElementById("f-title").value,
         date: fDate.value,
         time: fTime.value,
-        repeat: document.getElementById("f-repeat").value
+        repeat: document.getElementById("f-repeat").value,
+        musicTitle: fMusicTitle ? fMusicTitle.value : "",
+        musicUrl: fMusicUrl ? fMusicUrl.value : ""
       };
       const res = await fetch(`${API_BASE}/api/schedules`, {
         method: "POST",
@@ -967,6 +1258,7 @@
       }
       pushToast("已同步到 Java");
       document.getElementById("f-title").value = "";
+      renderSelectedMusic();
       loadSchedules();
     });
 
