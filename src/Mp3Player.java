@@ -21,7 +21,10 @@ public final class Mp3Player {
     private Player currentPlayer;
     private BufferedInputStream currentStream;
 
-    public synchronized void play(Path file) {
+    public synchronized boolean play(Path file) {
+        if (file == null || !file.toFile().exists() || !file.toFile().canRead()) {
+            return false;
+        }
         stop();
         currentTask = pool.submit(() -> {
             try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file.toFile()))) {
@@ -30,7 +33,8 @@ public final class Mp3Player {
                     currentPlayer = new Player(in);
                 }
                 currentPlayer.play();
-            } catch (Exception ignored) {
+            } catch (Exception ex) {
+                System.err.println("MP3 play failed: " + ex.getMessage());
             } finally {
                 synchronized (this) {
                     closePlayerQuietly();
@@ -38,13 +42,15 @@ public final class Mp3Player {
                 }
             }
         });
+        return true;
     }
 
     public synchronized void stop() {
         if (currentPlayer != null) {
             try {
                 currentPlayer.close();
-            } catch (Exception ignored) {
+            } catch (Exception ex) {
+                System.err.println("MP3 stop failed: " + ex.getMessage());
             }
         }
         closePlayerQuietly();
